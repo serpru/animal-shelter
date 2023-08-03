@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33103.184
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "pieskibackend", "pieskibackend\pieskibackend.csproj", "{039A6F68-C1F7-4A81-B9CF-6EED1E078E2D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{039A6F68-C1F7-4A81-B9CF-6EED1E078E2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{039A6F68-C1F7-4A81-B9CF-6EED1E078E2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{039A6F68-C1F7-4A81-B9CF-6EED1E078E2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{039A6F68-C1F7-4A81-B9CF-6EED1E078E2D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {AC40DE18-B9BB-446F-BAD6-21EA6DF60AC7}
+	EndGlobalSection
+EndGlobal
