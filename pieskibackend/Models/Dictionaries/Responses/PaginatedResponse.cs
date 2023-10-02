@@ -1,4 +1,4 @@
-﻿namespace pieskibackend.Models.Dictionaries;
+﻿namespace pieskibackend.Models.Dictionaries.Responses;
 
 public class PaginatedResponse<T>
 {

@@ -1,8 +1,8 @@
 ﻿using pieskibackend.Models.Shared;
 
-namespace pieskibackend.Models.Dictionaries;
+namespace pieskibackend.Models.Dictionaries.Db;
 
-public class Status : BaseEntity
+public class Origin : BaseEntity
 {
     public string Name { get; set; }
 }

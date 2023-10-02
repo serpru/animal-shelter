@@ -1,6 +1,6 @@
 ﻿using pieskibackend.Models.Shared;
 
-namespace pieskibackend.Models.Dictionaries;
+namespace pieskibackend.Models.Dictionaries.Db;
 
 public class AnimalImage : BaseEntity
 {
