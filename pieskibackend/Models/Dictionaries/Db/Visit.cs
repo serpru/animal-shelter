@@ -20,13 +20,17 @@ namespace pieskibackend.Models.Dictionaries.Db
         [ForeignKey("VISIT_STATUS_ID")]
         [JsonPropertyName("visit_status")]
         public VisitStatus VisitStatus { get; set; }
+        [ForeignKey("NOTE")]
+        [JsonPropertyName("note")]
+        public string? Note { get; set; }
 
         public Visit() { }
-        public Visit(DateTime date, int adoptionEventId, VisitStatus visitStatus)
+        public Visit(DateTime date, int adoptionEventId, VisitStatus visitStatus, string note)
         {
             Date = date;
             AdoptionEventId = adoptionEventId;
             VisitStatus = visitStatus;
+            Note = note;
         }
     }
 }

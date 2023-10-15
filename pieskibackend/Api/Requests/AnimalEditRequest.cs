@@ -1,25 +1,38 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using pieskibackend.Models;
 using pieskibackend.Models.Dictionaries;
+using System.Text.Json.Serialization;
 using TodoApi.Models;
 
 namespace pieskibackend.Api.Requests
 {
     public class AnimalEditRequest
     {
+        [JsonPropertyName("id")]
         public int Id { get; set; }
+        [JsonPropertyName("name")]
         public string? Name { get; set; }
+        [JsonPropertyName("birth_date")]
         public DateTime? BirthDate { get; set; }
+        [JsonPropertyName("aggression_animals_id")]
         public int? AggressionAnimalsId { get; set; }
+        [JsonPropertyName("aggression_humans_id")]
         public int? AggressionHumansId { get; set; }
+        [JsonPropertyName("note")]
         public string? Note { get; set; }
+        [JsonPropertyName("breed_id")]
         public int? BreedId { get; set; }
-        public int? WeightKg { get; set; }
-        public int? SizeId { get; set; }
+        [JsonPropertyName("weight_kg")]
+        public double? WeightKg { get; set; }
+        [JsonPropertyName("need_medication")]
         public bool? NeedMedication { get; set; }
+        [JsonPropertyName("origin_id")]
         public int? OriginId { get; set; }
+        [JsonPropertyName("status_id")]
         public int? StatusId { get; set; }
+        [JsonPropertyName("arrive_date")]
         public DateTime? ArriveDate { get; set; } = null;
+        [JsonPropertyName("adoption_date")]
         public DateTime? AdoptionDate { get; set; }
 
         public ResponseWrapper<Animal> MapToAnimal(MyDatabase db)

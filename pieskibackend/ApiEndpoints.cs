@@ -459,7 +459,29 @@ namespace pieskibackend
 
                 return Results.Ok(data);
             });
+            app.MapGet("/visit-status", (MyDatabase db) => {
+                var visitStatuses = db.VisitStatus.ToList();
 
+                if (visitStatuses == null)
+                {
+                    return Results.NotFound("No data found");
+                }
+
+                return Results.Ok(visitStatuses);
+            });
+            app.MapGet("/work-shift/{id}", (MyDatabase db, int id) =>
+            {
+                var workShift = db.WorkShift
+                .Include(x => x.Employee)
+                .FirstOrDefault(x => x.Id == id);
+
+                if (workShift == null)
+                {
+                    return Results.NotFound("No adoption found");
+                }
+
+                return Results.Ok(workShift);
+            });
 
         }
     }

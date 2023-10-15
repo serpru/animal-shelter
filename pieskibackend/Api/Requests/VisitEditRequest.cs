@@ -14,11 +14,12 @@ namespace pieskibackend.Api.Requests
         public DateTime Date { get; set; }
         [JsonPropertyName("visit_status_id")]
         public int VisitStatusId { get; set; }
+        [JsonPropertyName("note")]
+        public string? Note { get; set; }
 
         public ResponseWrapper<Visit> MapToVisit(MyDatabase db)
         {
             var existingVisit = db.Visit
-                .Include(x => x.AdoptionEventId)
                 .Include(x => x.VisitStatus)
                 .FirstOrDefault(x => x.Id == Id);
 
@@ -34,6 +35,7 @@ namespace pieskibackend.Api.Requests
 
             existingVisit.Date = Date;
             existingVisit.VisitStatus = db.VisitStatus.FirstOrDefault(x => x.Id == VisitStatusId);
+            existingVisit.Note = Note;
             return new ResponseWrapper<Visit>()
             {
                 Status = Enums.ResponseStatus.Success,
