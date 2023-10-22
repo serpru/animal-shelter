@@ -33,6 +33,7 @@ public class MyDatabase : DbContext
     public DbSet<Size> Size { get; set; } = null!;
     public DbSet<Status> Status { get; set; } = null!;
     public DbSet<User> User { get; set; } = null!;
+    public DbSet<UserRole> UserRole { get; set; } = null!;
     public DbSet<Visit> Visit { get; set; } = null!;
     public DbSet<VisitStatus> VisitStatus { get; set; } = null!;
     public DbSet<WorkShift> WorkShift { get; set; } = null!;

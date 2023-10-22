@@ -1,12 +1,31 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure;
+using Azure.Core;
+using IdentityModel;
+using IdentityModel.Client;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json.Linq;
 using pieskibackend.Api.Enums;
 using pieskibackend.Api.Requests;
 using pieskibackend.Models;
 using pieskibackend.Models.Dictionaries.Db;
 using pieskibackend.Models.Dictionaries.Responses;
 using pieskibackend.Models.Dictionaries.Shorts;
+using System.Data;
+using System.IdentityModel.Tokens.Jwt;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
+using System.Security.Claims;
+using System.Security.Principal;
+using System.Text;
 using System.Threading.Tasks.Dataflow;
 using TodoApi.Models;
 using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
@@ -15,8 +34,95 @@ namespace pieskibackend
 {
     public static class ApiEndpoints
     {
+        private static string GenerateToken(WebApplication app, User user)
+        {
+            var claims = new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user.Login),
+                    new Claim(JwtClaimTypes.Name, user.Login),
+                    new Claim(JwtClaimTypes.Role, user.Role.Description),
+                    new Claim(ClaimTypes.Role, user.Role.Description)
+                };
+            var token = new JwtSecurityToken(
+                issuer: app.Configuration["Jwt:Issuer"],
+                audience: app.Configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.UtcNow.AddSeconds(Convert.ToDouble(app.Configuration["Jwt:ATExpireSec"])),
+                notBefore: DateTime.UtcNow,
+                signingCredentials: new SigningCredentials(
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(app.Configuration["Jwt:Key"])),
+                    SecurityAlgorithms.HmacSha256)
+                );
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        private static void SetRefreshToken(string token, HttpContext cxt)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                Expires = new JwtSecurityTokenHandler().ReadJwtToken(token).ValidTo,
+                Path = "/",
+                SameSite = Microsoft.AspNetCore.Http.SameSiteMode.None
+            };
+            
+            cxt.Response.Cookies.Append("refreshToken", token, cookieOptions);
+           
+        }
+        private static bool ValidateUser(HttpContext cxt, MyDatabase db, string authorization)
+        {
+            if (AuthenticationHeaderValue.TryParse(authorization, out var headerValue))
+            {
+                var identity = cxt.User.Identity as ClaimsIdentity;
+                var userName = identity.FindFirst("name").Value;
+
+                var user = db.User.FirstOrDefault(x => x.Login == userName);
+                if (user == null) { return false; }
+
+                var scheme = headerValue.Scheme;
+                var parameter = headerValue.Parameter;
+                //var token = new JwtSecurityTokenHandler().ReadJwtToken(parameter);
+
+                if (user.AccessToken != parameter)
+                {
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
         public static void Configure(WebApplication app)
         {
+            app.MapPost("/login",
+                
+                (MyDatabase db, HttpContext cxt, [FromBody] LoginRequest body) => {
+                var user = db.User
+                .Include(x => x.Role)
+                .FirstOrDefault(x => x.Login == body.Login && x.Password == body.Password);
+                if (user is null)
+                {
+                    return Results.BadRequest("No user found.");
+                }
+
+                var tokenString = GenerateToken(app, user);
+                SetRefreshToken(tokenString, cxt);
+                user.AccessToken = tokenString;
+                db.User.Update(user);
+                db.SaveChanges();
+                return Results.Ok("Logged in");
+            });
+            app.MapPost("/logout",
+                [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "USER, ADMIN")]
+            (MyDatabase db, HttpContext cxt) => {
+                var token = cxt.Request.Cookies["refreshToken"];
+                if (token != null)
+                {
+                    var user = db.User.FirstOrDefault(x => x.AccessToken == token);
+                    cxt.Response.Cookies.Delete("refreshToken");
+                }
+
+                return Results.Ok();
+            });
             app.MapPost("/adoptee-add", (MyDatabase db, [FromBody] AdopteeAddRequest request) => {
                 var response = request.MapToAdoptee(db);
 
@@ -135,9 +241,19 @@ namespace pieskibackend
 
                 return Results.Ok(statuses);
             });
-            app.MapGet("/animals", async (MyDatabase db, int page, int size, string? sort, string? qp) => {
 
-                var animals = await db.Animal
+            app.MapGet("/animals",
+                [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "USER, ADMIN")]
+                async (HttpContext cxt, MyDatabase db, [FromHeader] string authorization, int page, int size, string? sort, string? qp) => {
+                    //var token = cxt.Request.Headers.Authorization;
+
+                    var token = cxt.Request.Cookies["refreshToken"];
+
+                    //if (!ValidateUser(cxt, db, authorization))
+                    //{
+                    //    return Results.Forbid();
+                    //}
+                    var animals = await db.Animal
                     .Include(x => x.AggressionAnimals)
                     .Include(x => x.AggressionHumans)
                     .Include(x => x.Breed)
@@ -146,26 +262,30 @@ namespace pieskibackend
                     .Include(x => x.Status)
                     .ToListAsync();
 
-                if (!string.IsNullOrEmpty(qp)) { animals = animals.FindAll(x => x.Name.Contains(qp, StringComparison.InvariantCultureIgnoreCase)).ToList(); }
+                    if (!string.IsNullOrEmpty(qp)) { animals = animals.FindAll(x => x.Name.Contains(qp, StringComparison.InvariantCultureIgnoreCase)).ToList(); }
 
-                if (string.IsNullOrEmpty(sort))
-                { animals = animals.OrderBy(x => x.Name).ToList(); }
-                else if (sort.Contains("Id")) { animals = animals.OrderBy(x => x.Id).ToList(); }
-                else if (sort.Contains("Name")) { animals = animals.OrderBy(x => x.Name).ToList(); }
-                else if (sort.Contains("Age")) { animals = animals.OrderBy(x => x.BirthDate).ThenBy(x => x.Name).ToList(); }
+                    if (string.IsNullOrEmpty(sort))
+                    { animals = animals.OrderBy(x => x.Name).ToList(); }
+                    else if (sort.Contains("Id")) { animals = animals.OrderBy(x => x.Id).ToList(); }
+                    else if (sort.Contains("Name")) { animals = animals.OrderBy(x => x.Name).ToList(); }
+                    else if (sort.Contains("Age")) { animals = animals.OrderBy(x => x.BirthDate).ThenBy(x => x.Name).ToList(); }
                 
-                return new PaginatedResponse<IEnumerable<Animal>>()
-                {
-                    Page = page,
-                    Size = size,
-                    TotalElements = animals.Count,
-                    Data = animals
-                    .Skip(page * size)
-                    .Take(size)
-                };
-            });
 
-            app.MapGet("/animal/{id}", (MyDatabase db, int id) => {
+                    var results = new PaginatedResponse<IEnumerable<Animal>>()
+                    {
+                        Page = page,
+                        Size = size,
+                        TotalElements = animals.Count,
+                        Data = animals
+                        .Skip(page * size)
+                        .Take(size)
+                    };
+                    return Results.Ok(results);
+                });
+
+            app.MapGet("/animal/{id}",
+                [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "USER, ADMIN")]
+            (MyDatabase db, int id) => {
                 var animal = db.Animal
                 .Include(x => x.AggressionAnimals)
                 .Include(x => x.AggressionHumans)
@@ -275,16 +395,6 @@ namespace pieskibackend
                 }
 
                 return Results.Ok(breeds);
-            });
-
-            app.MapPost("/login", (MyDatabase db, [FromBody] LoginRequest body) => {
-                var user = db.User.FirstOrDefault(x => x.Login == body.Login && x.Password == body.Password);
-                if (user is null)
-                {
-                    return Results.BadRequest("Skill issue :/");
-                }
-                return Results.Ok("Hepi fok");
-                
             });
 
             app.MapGet("/employee/{id}", (MyDatabase db, int id) => {
