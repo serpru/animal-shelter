@@ -117,15 +117,15 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
                 policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173");
                     policy.AllowAnyHeader();
                     policy.AllowAnyMethod();
                     policy.AllowCredentials();
+                    policy.WithOrigins("http://localhost:5173");
                 });
 });
 
 var app = builder.Build();
-app.UseCors();
+app.UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("http://localhost:5173"));
 //o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()
 
 // Configure the HTTP request pipeline.
