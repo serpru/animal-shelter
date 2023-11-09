@@ -10,13 +10,14 @@ namespace pieskibackend.Models.Dictionaries.Db
         [Column("LOGIN")]
         public string Login { get; set; }
         [Required]
-        [Column("PASSWORD")]
-        public string Password { get; set; }
-        [Required]
         [ForeignKey("ROLE_ID")]
         public UserRole Role { get; set; }
         [Column("ACCESS_TOKEN")]
         public string? AccessToken { get; set; }
+        [Column("PASSWORD_HASH")]
+        public byte[] PasswordHash { get; set; }
+        [Column("PASSWORD_SALT")]
+        public byte[] PasswordSalt { get; set; }
 
     }
 }

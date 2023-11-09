@@ -49,7 +49,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             {
                 OnMessageReceived = context =>
                 {
-                    context.Token = context.Request.Cookies["refreshToken"];
+                    context.Token = context.Request.Cookies["token"];
                     return Task.CompletedTask;
                 }
             };
