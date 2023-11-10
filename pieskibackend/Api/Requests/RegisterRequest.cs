@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace pieskibackend.Api.Requests
 {
-    public class LoginRequest
+    public class RegisterRequest
     {
         [Required]
         [Column("LOGIN")]
@@ -14,5 +14,9 @@ namespace pieskibackend.Api.Requests
         [Column("PASSWORD")]
         [JsonPropertyName("password")]
         public string Password { get; set; }
+        [Required]
+        [Column("ROLE_ID")]
+        [JsonPropertyName("role_id")]
+        public int RoleID { get; set; }
     }
 }
