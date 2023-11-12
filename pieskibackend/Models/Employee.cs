@@ -25,10 +25,10 @@ namespace pieskibackend.Models
         [Column("EMAIL")]
         [JsonPropertyName("email")]
         public string Email { get; set; }
-        [Required]
-        [Column("SALARY")]
-        [JsonPropertyName("salary")]
-        public double Salary { get; set; }
+        //[Required]
+        //[Column("SALARY")]
+        //[JsonPropertyName("salary")]
+        //public double Salary { get; set; }
         [Required]
         [ForeignKey("JOB_TYPE_ID")]
         [JsonPropertyName("job_type")]
@@ -37,10 +37,10 @@ namespace pieskibackend.Models
         [Column("START_DATE")]
         [JsonPropertyName("start_date")]
         public DateTime StartDate { get; set; }
-        [Required]
-        [Column("BIRTH_DATE")]
-        [JsonPropertyName("birth_date")]
-        public DateTime BirthDate { get; set; }
+        //[Required]
+        //[Column("BIRTH_DATE")]
+        //[JsonPropertyName("birth_date")]
+        //public DateTime BirthDate { get; set; }
 
         public Employee() { }
 
@@ -50,10 +50,10 @@ namespace pieskibackend.Models
             LastName = lastName;
             PhoneNumber = phoneNumber;
             Email = email;
-            Salary = salary;
+            //Salary = salary;
             JobType = jobType;
             StartDate = startDate;
-            BirthDate = birthDate;
+            //BirthDate = birthDate;
         }
 
         public EmployeeShort ToEmployeeShort()

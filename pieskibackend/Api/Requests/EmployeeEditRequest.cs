@@ -45,10 +45,10 @@ namespace pieskibackend.Api.Requests
             if (LastName != null) { employee.LastName = LastName; }
             if (PhoneNumber != null) { employee.PhoneNumber = PhoneNumber; }
             if (Email != null) { employee.Email = Email; }
-            if (Salary != null) { employee.Salary = (double)Salary; }
+            //if (Salary != null) { employee.Salary = (double)Salary; }
             if (JobTypeId != null) { employee.JobType = db.JobType.FirstOrDefault(a => a.Id == JobTypeId); }
             if (StartDate != null) { employee.StartDate = (DateTime)StartDate; }
-            if (BirthDate != null) { employee.BirthDate = (DateTime)BirthDate; }
+            //if (BirthDate != null) { employee.BirthDate = (DateTime)BirthDate; }
 
 
             return new ResponseWrapper<Employee>()
