@@ -15,7 +15,10 @@ public class MyDatabase : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder o)
     {
-        o.UseSqlServer("Data Source=localhost;Initial Catalog=animal_shelter;Integrated Security=True;TrustServerCertificate=True");
+        if (!o.IsConfigured)
+        {
+            o.UseSqlServer("Data Source=localhost;Initial Catalog=animal_shelter;Integrated Security=True;TrustServerCertificate=True");
+        }
     }
     public DbSet<Adoptee> Adoptee { get; set; } = null!;
     public DbSet<AdoptionEvent> AdoptionEvent { get; set; } = null!;

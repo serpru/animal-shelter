@@ -35,7 +35,7 @@ namespace pieskibackend
 {
     public static class ApiEndpoints
     {
-        private static string GenerateToken(WebApplication app, User user)
+        public static string GenerateToken(IConfiguration config, User user)
         {
             var claims = new[]
                 {
@@ -45,18 +45,18 @@ namespace pieskibackend
                     new Claim(ClaimTypes.Role, user.Role.Description)
                 };
             var token = new JwtSecurityToken(
-                issuer: app.Configuration["Jwt:Issuer"],
-                audience: app.Configuration["Jwt:Audience"],
+                issuer: config["Jwt:Issuer"],
+                audience: config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddSeconds(Convert.ToDouble(app.Configuration["Jwt:ATExpireSec"])),
+                expires: DateTime.UtcNow.AddSeconds(Convert.ToDouble(config["Jwt:ATExpireSec"])),
                 notBefore: DateTime.UtcNow,
                 signingCredentials: new SigningCredentials(
-                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(app.Configuration["Jwt:Key"])),
+                    new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Jwt:Key"])),
                     SecurityAlgorithms.HmacSha256)
                 );
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        private static void SetRefreshToken(string token, HttpContext cxt)
+        public static void SetRefreshToken(string token, HttpContext cxt)
         {
             var cookieOptions = new CookieOptions
             {
@@ -68,7 +68,6 @@ namespace pieskibackend
             };
 
             cxt.Response.Cookies.Append("token", token, cookieOptions);
-
         }
         private static bool ValidateUser(HttpContext cxt, MyDatabase db, string authorization)
         {
@@ -102,7 +101,7 @@ namespace pieskibackend
             }
         }
 
-        private static bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
+        public static bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt)
         {
             using (var hmac = new HMACSHA512(passwordSalt))
             {
@@ -174,7 +173,7 @@ namespace pieskibackend
                         return Results.BadRequest("Login and/or password are incorrect.");
                     }
 
-                    var tokenString = GenerateToken(app, user);
+                    var tokenString = GenerateToken(app.Configuration, user);
                     SetRefreshToken(tokenString, cxt);
                     user.AccessToken = tokenString;
                     db.User.Update(user);
@@ -580,10 +579,10 @@ namespace pieskibackend
             {
                 var token = cxt.Request.Cookies["token"];
 
-                if (!ValidateUser(cxt, db, token))
-                {
-                    return Results.Forbid();
-                }
+                //if (!ValidateUser(cxt, db, token))
+                //{
+                //    return Results.Forbid();
+                //}
                 var species = db.AnimalSpecies.ToList();
 
                 if (species == null)

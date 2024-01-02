@@ -1,6 +1,6 @@
 ﻿namespace pieskibackend.Api.Enums
 {
-    public enum VisitStatus
+    public enum VisitStatusEnum
     {
         Upcoming = 1,
         Done,
